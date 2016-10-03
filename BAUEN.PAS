@@ -1,4 +1,4 @@
-uses crt,dos,modexlib,gif{fontes},vesa2,tools,variable,intro,rohbau;
+uses crt,dos,modexlib,gif{fontes},vesa2,{tools,}variable,{intro,}rohbau;
 procedure initsprites;
 begin
   screen_off;
@@ -80,20 +80,23 @@ end;
   procedure programexit;far;
    var qi:word;
    begin
+  textmode(3);
   for qi:=0 to 41 do if spr[qi].adr<>nil then freemem(spr[qi].adr,spr[qi].dtx*spr[qi].dty);
   for qi:=0 to 6 do if qua[qi].adr<>nil then freemem(qua[qi].adr,qua[qi].dtx*qua[qi].dty);
   for qi:=0 to 13 do if zus[qi].adr<>nil then freemem(zus[qi].adr,zus[qi].dtx*zus[qi].dty);
   for qi:=0 to 21 do if roh[qi].adr<>nil then freemem(roh[qi].adr,roh[qi].dtx*roh[qi].dty);
   for qi:=0 to 142 do if gel[qi].adr<>nil then freemem(gel[qi].adr,gel[qi].dtx*gel[qi].dty);
   for qi:=0 to 142 do if gel2[qi].adr<>nil then freemem(gel2[qi].adr,gel2[qi].dtx*gel2[qi].dty);
-    exitproc:=oldexit;
-    writedsp($D3);
+  exitproc:=oldexit;
+  for qi:=0 to 1 do if s[qi]<>nil then freemem(s[qi],sizeof(s[qi]));
+  writeln('Programm beendet. Speicher freigegeben. Soundkarte zurueckgesetzt.');
+{    writedsp($D3);
     writedsp($DA);
     writedsp($D0);
     port[$6+basis]:=1;
     for qi:=1 to 256 do;
     port[$6+basis]:=0;
-{    asm
+    asm
      cli
      push  es
      push  di
@@ -118,10 +121,10 @@ end;
      pop   di
      pop   es
      sti
-    end;           }
+    end;}
     port[$20]:=$20;
    end;
-   procedure initdma(buf:pointer;size2:word);
+{   procedure initdma(buf:pointer;size2:word);
     begin
      physpos:=16*longint(pt(buf).segm)+pt(buf).ofs;
      pn:=pt(physpos).segm;
@@ -172,7 +175,7 @@ end;
       sti
      end;
      port[dmawr_single_mask_reg[dma]]:=1;
-    end;
+    end;}
 procedure showb;
 var mmm,te,ykky,xkkx,posx,posy,mp,phase,nx,ny,kx,ky,kxx:word;mm:string;
 mn:byte;
@@ -182,7 +185,7 @@ fa:=true;
 initvesa($101);
 loadgif('grass6.gif');
 for kxx:=1 to max do begin
-{mn:=artzusprite(s[m].haus[kxx].art);}
+{mn:=artzusprite(s[m]^.haus[kxx].art);}
 if (mn>0) and (mn<29) then begin
 end;
 end;
@@ -243,15 +246,15 @@ setstart(seite);
 if seite=0 then seite:=16000 else seite:=0;}
 for i:=1 to 12 do begin
 putsprite(540,i*20,roh[i]);{wy:=i*20+6;}
-{str(s[m].p[i]*10,mm);
+{str(s[m]^.p[i]*10,mm);
 writes(mm);}
 end;
-putsprite(540,360,spr[artzusprite(s[m].ch)]);
+putsprite(540,360,spr[artzusprite(s[m]^.ch)]);
 for kxx:=1 to max do begin
-mn:=artzusprite(s[m].haus[kxx].art);
+mn:=artzusprite(s[m]^.haus[kxx].art);
 if (mn>0) and (mn<29) then begin
-putsprite(s[m].haus[kxx].xx*20,s[m].haus[kxx].yy*20,spr[mn-1]);
-putsprite(s[m].haus[kxx].xx*20+6,s[m].haus[kxx].yy*20+5,qua[s[m].haus[kxx].stufe-1]);
+putsprite(s[m]^.haus[kxx].xx*20,s[m]^.haus[kxx].yy*20,spr[mn-1]);
+putsprite(s[m]^.haus[kxx].xx*20+6,s[m]^.haus[kxx].yy*20+5,qua[s[m]^.haus[kxx].stufe-1]);
 end;
 end;
 putsprite(x,y,zus[3]);
@@ -267,13 +270,13 @@ putsprite(x*20,y*20,zus[phase mod 8 div 2+4]);
 if keypressed then begin
 a:=readkey;
 case a of
-'a':if s[m].ch<hauser then inc(s[m].ch) else s[m].ch:=1;
-'y':if s[m].ch>1 then dec(s[m].ch) else s[m].ch:=hauser;
-    '+':if s[m].steuern<100 then inc(s[m].steuern);
-    '-':if s[m].steuern>0 then dec(s[m].steuern);
-    's':if s[m].steu<100 then inc(s[m].steu);
-    'x':if s[m].steu>0 then dec(s[m].steu);
-    #32:built(s[m].ch,r(s[m].ch));
+'a':if s[m]^.ch<hauser then inc(s[m]^.ch) else s[m]^.ch:=1;
+'y':if s[m]^.ch>1 then dec(s[m]^.ch) else s[m]^.ch:=hauser;
+    '+':if s[m]^.steuern<100 then inc(s[m]^.steuern) else s[m]^.steuern:=100;
+    '-':if s[m]^.steuern>0 then dec(s[m]^.steuern) else s[m]^.steuern:=0;
+    's':if s[m]^.steu<100 then inc(s[m]^.steu) else s[m]^.steu:=100;
+    'x':if s[m]^.steu>0 then dec(s[m]^.steu) else s[m]^.steu:=0;
+    #32:built(s[m]^.ch,r(s[m]^.ch));
     #13:aufw;
 #75:begin npaint:=true;if posx>0 then dec(posx);end;
 #77:begin npaint:=true;if posx<kmx-26 then inc(posx);end;
@@ -285,24 +288,97 @@ until keypressed;
 textmode(3);
 fa:=false;
 end;
+procedure wachstum;
 begin
+inc(s[m]^.dorf,s[m]^.dorf div 50-s[m]^.unruhe);
+if s[m]^.dorf div 200-s[m]^.unruhe>0 then inc(s[m]^.bauen,s[m]^.dorf div 200-s[m]^.unruhe);
+inc(s[m]^.p[11],round((s[m]^.dorf/2500)*s[m]^.steuern*s[m]^.steu));
+inc(s[m]^.p[14],round((s[m]^.dorf/2500)*(100-s[m]^.steuern)*s[m]^.steu));
+inc(s[m]^.p[15],round((s[m]^.dorf/2500)*(100-s[m]^.steuern)*s[m]^.steu));
+{s[m]^.temp:=s[m]^.unruhe*s[m]^.dorf div 25;
+[m]^.dorf:=s[m]^.dorf-s[m]^.temp;
+    inc(s[m]^.dorf,s[m]^.dorf div 10-(s[m]^.dorf+s[m]^.temp) div 150);
+    s[m]^.dorf:=s[m]^.dorf+s[m]^.temp;}
+    for k:=1 to 13 do if s[m]^.p[k]>s[m]^.maxl then s[m]^.p[k]:=s[m]^.maxl;
+    for k:=16 to 25 do if s[m]^.p[k]>s[m]^.maxl then s[m]^.p[k]:=s[m]^.maxl;
+    if s[m]^.p[14]>s[m]^.maxe then s[m]^.p[14]:=s[m]^.maxe;
+    if s[m]^.p[15]>s[m]^.maxe then s[m]^.p[15]:=s[m]^.maxe;
+end;
+procedure explode(welches:byte);
+begin
+s[m]^.haus[welches].ak:=false;
+s[m]^.haus[welches].nahrung:=false;
+s[m]^.haus[welches].art:=0;
+s[m]^.haus[welches].stufe:=0;
+s[m]^.haus[welches].xx:=0;
+s[m]^.haus[welches].yy:=0;
+end;
+procedure verfall;
+begin
+for i:=1 to max do if (s[m]^.haus[i].art>0) then begin
+ if s[m]^.haus[i].hunger then begin
+  if s[m]^.haus[i].kaputt<9 then inc(s[m]^.haus[i].kaputt) else explode(i);
+ end else if s[m]^.haus[i].kaputt>0 then dec(s[m]^.haus[i].kaputt);
+end;
+end;
+procedure restauration;
+var mul:byte;
+begin
+ for i:=1 to max do begin
+  if (s[m]^.haus[i].art>0) and (s[m]^.haus[i].ak) then begin
+   mul:=s[m]^.haus[i].stufe;
+   {if haus[i].art=5 then inc(s[m]^.p[14],mul);
+   if haus[i].art=8 then inc(s[m]^.p[11],mul);
+   if haus[i].art=10 then inc(s[m]^.p[14],mul);
+   if haus[i].art=11 then inc(s[m]^.p[15],mul);
+   if haus[i].art=24 then begin inc(s[m]^.p[11],mul);inc(s[m]^.p[14],mul);inc(s[m]^.p[15],mul);end;}
+{   if s[m]^.haus[i].art=24 then mul:=0;
+   if s[m]^.haus[i].art=3 then mul:=mul*4;
+   if s[m]^.haus[i].art=22 then mul:=mul*2;
+   if s[m]^.haus[i].art=16 then mul:=mul*2;
+   if s[m]^.haus[i].art=6 then mul:=mul*2;
+   if s[m]^.haus[i].art=29 then mul:=mul*8;}
+   if (s[m]^.p[14]>=reskosten[mul].nahrung) and (s[m]^.p[11]>=reskosten[mul].gold) and
+   (s[m]^.p[15]>=reskosten[mul].nahrung) and (s[m]^.p[1]>=reskosten[mul].holz) and
+   (s[m]^.p[2]>=reskosten[mul].stein) and (s[m]^.p[19]>=reskosten[mul].moertel) and
+   (s[m]^.p[9]>=reskosten[mul].stahl) and (s[m]^.p[4]>reskosten[mul].ziegel) and
+   (s[m]^.p[20]>reskosten[mul].glas) then begin
+   dec(s[m]^.p[14],reskosten[mul].nahrung);dec(s[m]^.p[11],reskosten[mul].gold);
+   dec(s[m]^.p[15],reskosten[mul].nahrung);dec(s[m]^.p[1],reskosten[mul].holz);
+   dec(s[m]^.p[2],reskosten[mul].stein);dec(s[m]^.p[19],reskosten[mul].moertel);
+   dec(s[m]^.p[9],reskosten[mul].stahl);dec(s[m]^.p[4],reskosten[mul].ziegel);
+   dec(s[m]^.p[20],reskosten[mul].glas);
+   s[m]^.haus[i].hunger:=false;
+   end else begin
+   s[m]^.haus[i].hunger:=true;
+{ if (s[m]^.p[14]-s[m]^.p[12] div 2>=0) and (s[m]^.p[15]-s[m]^.p[12] div 2>=0) and (s[m]^.p[11]-s[m]^.p[12] div 2>=0)
+then begin
+  dec(s[m]^.p[14],s[m]^.p[12] div 2);dec(s[m]^.p[15],s[m]^.p[12] div 2);dec(s[m]^.p[11],s[m]^.p[12] div 2);
+ end else dec(s[m]^.p[12],s[m]^.p[12] div 10);}
+ if (s[m]^.p[14]<50) or (s[m]^.p[15]<50) then s[m]^.fehler[19]:=true;
+ if s[m]^.p[11]<50 then s[m]^.fehler[18]:=true;
+ if s[m]^.dorf<50 then s[m]^.fehler[21]:=true;
+ if (s[m]^.p[1]<20) or (s[m]^.p[2]<20) then s[m]^.fehler[20]:=true;
+ for i:=1 to soldier do if s[m]^.einheit[i].da then if (s[m]^.p[15]>0) and (s[m]^.p[14]>0) and (s[m]^.p[11]>0) then begin
+  dec(s[m]^.p[11]);dec(s[m]^.p[14]);dec(s[m]^.p[15]);
+ end else s[m]^.einheit[i].da:=false;
+end;
+end;
+end;
+end;
+begin
+getmem(s[0],sizeof(s[0]));
+getmem(s[1],sizeof(s[1]));
   chdir('d:\wars');
   clrscr;
   Randomize;
-{assign(f,'werte.dat');
+assign(f,'ta2.dat');
 reset(f);
-for i:=1 to 71 do readln(f,a);
-for j:=1 to 10 do begin
-{readln(f,rassen[j].name);}
-{for i:=1 to 68 do begin
-readln(f,name);
-writeln(i,'   ',name);
-val(name,rassen[j].werte[i],sizei);
-if sizei<>0 then begin writeln('Error ',sizei);readkey;halt;end;
-end;
-end;
-close(f);}
-assign(f,'builtdat.dat');
+readln(f,ast);      {Mut,Klugheit, etc.}
+for j:=1 to 11 do readln(f,rassen[j].name);
+for i:=1 to 83 do begin readln(f,ast);for j:=1 to 11 do readln(f,rassen[j].werte[i]);end;
+close(f);
+assign(f,'built2.dat');
 reset(f);
 for i:=1 to hauser do begin readln(f,n[i,1]);readln(f,n[i,2]);readln(f,n[i,3]);readln(f,n[i,4]);readln(f,n[i,5]);
 readln(f,n[i,6]);end;
@@ -334,7 +410,7 @@ close(F);}
 {assign(f,'rassen.dat');
 reset(f);
 for i:=1 to 8 do for j:=1 to 21 do readln(f,rassen[i][j]);}
-for i:=1 to 25 do s[m].fehler[i]:=false;
+for i:=1 to 25 do s[m]^.fehler[i]:=false;
 {if paramcount>0 then begin
 assign(fil,paramstr(1));
 reset(fil,1);
@@ -342,26 +418,27 @@ blockread(fil,s,sizeof(s));
 close(fil);
 end else }
 for m:=0 to 1 do begin
-s[m].esse:=1;
-s[m].ch:=2;s[m].dorf:=250;
-for i:=1 to hauser do s[m].vor[i,1]:=true;
-for i:=1 to soldier do for j:=1 to 25 do s[m].einheit[i].werte[j]:=0;
+s[m]^.esse:=1;
+s[m]^.ch:=2;s[m]^.dorf:=250;
+for i:=1 to hauser do s[m]^.vor[i,1]:=true;
+for i:=1 to soldier do for j:=1 to 25 do s[m]^.einheit[i].werte[j]:=0;
 for i:=1 to hauser do for j:=1 to 5 do if (n[i,j][1]='-') and (n[i,j+1]<>'-') then
-begin s[m].vor[i,j+1]:=true;s[m].vor[i,j]:=false;end;
- for i:=1 to 25 do s[m].p[i]:=2500;
-{ s[m].p[12]:=0;}
- for i:=1 to max do begin s[m].haus[i].ak:=false;s[m].haus[i].nahrung:=false;s[m].haus[i].art:=0;s[m].haus[i].stufe:=0;end;
+begin s[m]^.vor[i,j+1]:=true;s[m]^.vor[i,j]:=false;end;
+ for i:=1 to 25 do s[m]^.p[i]:=2500;
+{ s[m]^.p[12]:=0;}
+ for i:=1 to max do begin s[m]^.haus[i].ak:=false;s[m]^.haus[i].nahrung:=false;s[m]^.haus[i].art:=0;s[m]^.haus[i].stufe:=0;
+ s[m]^.haus[i].baurunden:=0;end;
  x:=14;
  y:=14;
- s[m].weapon:=1;
- s[m].akwa:=1;
- s[m].akru:=1;
- s[m].rustung:=1;
- s[m].befehle:=10;
- s[m].bauen:=10;
- s[m].wissen:=1001;
- s[m].t:=false;
- built(16,3);
+ s[m]^.weapon:=1;
+ s[m]^.akwa:=1;
+ s[m]^.akru:=1;
+ s[m]^.rustung:=1;
+ s[m]^.befehle:=10;
+ s[m]^.bauen:=10;
+ s[m]^.wissen:=1001;
+ s[m]^.t:=false;
+{ built(16,3);
  y:=15;x:=15;
  built(21,4);
  y:=13;x:=14;
@@ -373,19 +450,19 @@ begin s[m].vor[i,j+1]:=true;s[m].vor[i,j]:=false;end;
  y:=14;x:=13;
  built(24,1);
  y:=14;x:=15;
- built(24,1);
- s[m].t:=true;
- s[m].wissen:=101;
+ built(24,1);  }
+ s[m]^.t:=true;
+ s[m]^.wissen:=101;
 main:=true;
-for i:=1 to soldier do begin s[0].einheit[i].da:=false;for j:=1 to 4 do begin s[0].einheit[i].waf[j]:=1;
-s[0].einheit[i].rus[j]:=1;end;end;
-for i:=1 to soldier do begin s[1].einheit[i].da:=false;for j:=1 to 4 do begin s[1].einheit[i].waf[j]:=1;
-s[1].einheit[i].rus[j]:=1;end;end;
-for i:=1 to soldier do begin s[1].einheit[i].da:=true;s[1].einheit[i].werte[8]:=40;s[1].einheit[i].werte[21]:=4;
-s[1].einheit[i].waf[1]:=1;s[1].einheit[i].rus[2]:=1;s[1].einheit[i].werte[22]:=12;end;
-for i:=1 to soldier do begin s[0].einheit[i].da:=true;s[0].einheit[i].werte[8]:=40;s[0].einheit[i].werte[21]:=4;
-s[0].einheit[i].waf[1]:=1;s[0].einheit[i].rus[1]:=1;s[0].einheit[i].werte[22]:=12;end;
-{for i:=1 to 15 do begin s[m].waffen[i].stuck:=4;s[m].ruestungen[i].stuck:=4;end;      }
+for i:=1 to soldier do begin s[0]^.einheit[i].da:=false;for j:=1 to 4 do begin s[0]^.einheit[i].waf[j]:=1;
+s[0]^.einheit[i].rus[j]:=1;end;end;
+for i:=1 to soldier do begin s[1]^.einheit[i].da:=false;for j:=1 to 4 do begin s[1]^.einheit[i].waf[j]:=1;
+s[1]^.einheit[i].rus[j]:=1;end;end;
+for i:=1 to soldier do begin s[1]^.einheit[i].da:=true;s[1]^.einheit[i].werte[8]:=40;s[1]^.einheit[i].werte[21]:=4;
+s[1]^.einheit[i].waf[1]:=1;s[1]^.einheit[i].rus[2]:=1;s[1]^.einheit[i].werte[22]:=12;end;
+for i:=1 to soldier do begin s[0]^.einheit[i].da:=true;s[0]^.einheit[i].werte[8]:=40;s[0]^.einheit[i].werte[21]:=4;
+s[0]^.einheit[i].waf[1]:=1;s[0]^.einheit[i].rus[1]:=1;s[0]^.einheit[i].werte[22]:=12;end;
+{for i:=1 to 15 do begin s[m]^.waffen[i].stuck:=4;s[m]^.ruestungen[i].stuck:=4;end;      }
 end;
 m:=0;
 x:=14;
@@ -415,18 +492,18 @@ freemem(tempbuf,$FFFF-ofs(temp^));
 freemem(temp,blockgr);
 writeln('Block 1:',seg(blk1^),':',ofs(blk1^),'   Block 2:',seg(blk2^),':',ofs(blk2^));}
 readkey;
-  init_mode13;screen_off;
-  GetMem(Src_Frame,320*100);    {Speicher fr Quellbild holen und l”schen}
-  FillChar(Src_Frame^,320*100,0);
-  GetMem(Dest_Frame,320*100);   {Speicher fr Ziellbild holen und l”schen}
-  FillChar(Dest_Frame^,320*100,0);
-  Prep_Pal;                     {Palette vorbereiten}
-  getpal;
+{init_mode13;screen_off;
+GetMem(Src_Frame,320*100);    {Speicher fr Quellbild holen und l”schen}
+{FillChar(Src_Frame^,320*100,0);
+GetMem(Dest_Frame,320*100);   {Speicher fr Ziellbild holen und l”schen}
+{FillChar(Dest_Frame^,320*100,0);
+Prep_Pal;                     {Palette vorbereiten}
+{getpal;
 {  move(zielpal,palette,768);
   fillchar(palette1,768,0);}
   size:=160;
   sizei:=0;
-frequenz:=22050;
+{frequenz:=22050;
 block2:=true;
 name:='d:\wars\sound\5001.raw';
 assign(h,name);
@@ -446,7 +523,7 @@ main:=false;
 {initdma(blk1,blockgr);}
 read1:=false;
 read2:=false;
-gross:=filesize(h);
+{gross:=filesize(h);}
 last:=false;
 last2:=false;
 i:=60;
@@ -456,7 +533,7 @@ main:=true;
 {fillchar(mem[$a000:0],64000,0);}
 screen_on;
 wait:=0;
-Repeat
+{Repeat
 if main then inc(i);
 if i=100 then begin rnd:=5;stark:=5;loadgif('claw');Move(Vscreen^,Ptr($a000,0)^,32000);end;
 if i=300 then begin rnd:=10;stark:=15;loadgif('present');Move(Vscreen^,Ptr($a000,0)^,32000);end;
@@ -474,19 +551,19 @@ if keypressed and (main=true) then if readkey='q' then i:=2000;
     #13:if i=1001 then i:=2000;
     end;
     end;
-    Scroll_Up;                  {Flammen nach oben}
-    Show_Screen;                {fertigen Bildschirm zeigen}
-    New_Line;                   {unten neue Linie anfgen}
-if (wait=0) and (read1=true) and (last=false) then begin
+{    Scroll_Up;                  {Flammen nach oben}
+{    Show_Screen;                {fertigen Bildschirm zeigen}
+{    New_Line;                   {unten neue Linie anfgen}
+{if (wait=0) and (read1=true) and (last=false) then begin
 read1:=false;blockread(h,blk1^,blockgr);dec(gross,blockgr);
 end;
 if (wait=0) and (read2=true) and (last=false) then begin
 read2:=false;blockread(h,blk2^,blockgr);dec(gross,blockgr);
-end;
-Until i=2000;
+end;                                                       }
+{Until i=2000;}
 TextMode(3);
 textcolor(2);textbackground(0);
-initsprites;{showb;}
+{initsprites;{showb;}
 {freemem(blk1,bkgr);
 freemem(blk2,bkgr);
 writedsp($D3);
@@ -561,111 +638,115 @@ initdma(blk1,bkgr);}
  repeat
   fa:=false;
   a:=#0;
-  s[m].z:=0;
-    screen;
-  produziere;
-  inc(s[m].bauen,100);
-  baueweiter;
-  inc(zeit);if zeit>=40 then begin zeit:=0;versorgung;end;
-    inc(s[m].p[11],round((s[m].dorf/2500)*s[m].steuern*s[m].steu));
-    inc(s[m].p[14],round((s[m].dorf/2500)*(100-s[m].steuern)*s[m].steu));
-    inc(s[m].p[15],round((s[m].dorf/2500)*(100-s[m].steuern)*s[m].steu));
-    s[m].temp:=s[m].unruhe*s[m].dorf div 25;
-    s[m].dorf:=s[m].dorf-s[m].temp;
-    inc(s[m].dorf,s[m].dorf div 10-(s[m].dorf+s[m].temp) div 150);
-    s[m].dorf:=s[m].dorf+s[m].temp;
-    for k:=1 to 13 do if s[m].p[k]>s[m].maxl then s[m].p[k]:=s[m].maxl;
-    for k:=16 to 25 do if s[m].p[k]>s[m].maxl then s[m].p[k]:=s[m].maxl;
-    if s[m].p[14]>s[m].maxe then s[m].p[14]:=s[m].maxe;
-    if s[m].p[15]>s[m].maxe then s[m].p[15]:=s[m].maxe;
+  s[m]^.z:=0;
+{  inc(s[m]^.bauen,100);
+  inc(zeit);if zeit>=40 then begin zeit:=0;versorgung;end;}
   repeat
+  inc(ticker);
+  if ticker=100 then begin
+  ticker:=0;
+  inc(zeit);
+  baueweiter;                   {alle 1 Zeiteinheiten}
+  inc(s[m]^.p[1]);
+  if (s[m]^.steuern>100) then s[m]^.steuern:=100;
+  if (s[m]^.steuern<0) then s[m]^.steuern:=0;
+  if (s[m]^.steu>100) then s[m]^.steu:=100;
+  if (s[m]^.steu<0) then s[m]^.steu:=0;
+  if zeit mod 25=0 then begin Screen;produziere;end;
+  if zeit mod 50=0 then begin Verfall;wachstum;end;
+  if zeit mod 100=0 then restauration;
+end;
+   gotoxy(77,23);
+   write(zeit);
+   gotoxy(77,24);
+   write(ticker);
    if keypressed then begin
-    for i:=1 to 25 do s[m].fehler[i]:=false;
+    for i:=1 to 25 do s[m]^.fehler[i]:=false;
     a:=readkey;
     case a of
-    'a':if s[m].ch<hauser then inc(s[m].ch) else s[m].ch:=1;
-    'z':if s[m].ch>1 then dec(s[m].ch) else s[m].ch:=hauser;
+    'a':if s[m]^.ch<hauser then inc(s[m]^.ch) else s[m]^.ch:=1;
+    'z':if s[m]^.ch>1 then dec(s[m]^.ch) else s[m]^.ch:=hauser;
     #72:if y>1 then dec(y);
     #80:if y<20 then inc(y);
     #75:if x>1 then dec(x);
     #77:if x<25 then inc(x);
-    #83:begin for l:=1 to max do if (s[m].haus[l].xx=x) and
-    (s[m].haus[l].yy=y) and (s[m].bauen>0) and (s[m].befehle>0) then begin
-        dec(s[m].befehle);s[m].haus[l].art:=0;s[m].haus[l].stufe:=0;s[m].haus[l].xx:=0;
-        s[m].haus[l].yy:=0;s[m].haus[l].nahrung:=false;
-        inc(s[m].p[1],1);inc(s[m].p[2],1);end;end;
+    #83:begin for l:=1 to max do if (s[m]^.haus[l].xx=x) and
+    (s[m]^.haus[l].yy=y) and (s[m]^.bauen>0) and (s[m]^.befehle>0) then begin
+        dec(s[m]^.befehle);s[m]^.haus[l].art:=0;s[m]^.haus[l].stufe:=0;s[m]^.haus[l].xx:=0;
+        s[m]^.haus[l].yy:=0;s[m]^.haus[l].nahrung:=false;
+        inc(s[m]^.p[1],1);inc(s[m]^.p[2],1);end;end;
     'e':begin
     clrscr;
     repeat
     clrscr;
     window(1,1,80,25);
     writeln('Nummer            :',line2);
-    writeln('Name              :',s[m].einheit[line2].name);
-    writeln('Ruestung A        :',rus[s[m].einheit[line2].rus[1]].s);
-    writeln('Ruestung B        :',rus[s[m].einheit[line2].rus[2]].s);
-    writeln('Ruestung C        :',rus[s[m].einheit[line2].rus[3]].s);
-    writeln('Ruestung D        :',rus[s[m].einheit[line2].rus[4]].s);
-    writeln('Waffe A           :',waf[s[m].einheit[line2].waf[1]].s);
-    writeln('Waffe B           :',waf[s[m].einheit[line2].waf[2]].s);
-    writeln('Waffe C           :',waf[s[m].einheit[line2].waf[3]].s);
-    writeln('Waffe D           :',waf[s[m].einheit[line2].waf[4]].s);
-    writeln('Aktuelle Waffe    :',waf[s[m].akwa].s:17,':',s[m].waffen[s[m].akwa].stuck);
-    writeln('Aktuelle Ruestung :',rus[s[m].akru].s:17,':',s[m].ruestungen[s[m].akru].stuck);
+    writeln('Name              :',s[m]^.einheit[line2].name);
+    writeln('Ruestung A        :',rus[s[m]^.einheit[line2].rus[1]].s);
+    writeln('Ruestung B        :',rus[s[m]^.einheit[line2].rus[2]].s);
+    writeln('Ruestung C        :',rus[s[m]^.einheit[line2].rus[3]].s);
+    writeln('Ruestung D        :',rus[s[m]^.einheit[line2].rus[4]].s);
+    writeln('Waffe A           :',waf[s[m]^.einheit[line2].waf[1]].s);
+    writeln('Waffe B           :',waf[s[m]^.einheit[line2].waf[2]].s);
+    writeln('Waffe C           :',waf[s[m]^.einheit[line2].waf[3]].s);
+    writeln('Waffe D           :',waf[s[m]^.einheit[line2].waf[4]].s);
+    writeln('Aktuelle Waffe    :',waf[s[m]^.akwa].s:17,':',s[m]^.waffen[s[m]^.akwa].stuck);
+    writeln('Aktuelle Ruestung :',rus[s[m]^.akru].s:17,':',s[m]^.ruestungen[s[m]^.akru].stuck);
     window(41,1,80,25);
-    writeln('Mut               :',s[m].einheit[line2].werte[1]);
-    writeln('Klugheit          :',s[m].einheit[line2].werte[2]);
-    writeln('Charisma          :',s[m].einheit[line2].werte[3]);
-    writeln('Intuition         :',s[m].einheit[line2].werte[4]);
-    writeln('Fingerfertigkeit  :',s[m].einheit[line2].werte[5]);
-    writeln('Gewandtheit       :',s[m].einheit[line2].werte[6]);
-    writeln('Koerperkraft      :',s[m].einheit[line2].werte[7]);
-    writeln('Lebensenergie     :',s[m].einheit[line2].werte[8]);
-    writeln('Astralenergie     :',s[m].einheit[line2].werte[9]);
-    writeln('Waffenlos         :',s[m].einheit[line2].werte[10]);
-    writeln('Speere, Staebe    :',s[m].einheit[line2].werte[11]);
-    writeln('Stichwaffen       :',s[m].einheit[line2].werte[12]);
-    writeln('Aexte, Beile      :',s[m].einheit[line2].werte[13]);
-    writeln('stumpfe Hiebwaffen:',s[m].einheit[line2].werte[14]);
-    writeln('scharfe Hiebwaffen:',s[m].einheit[line2].werte[15]);
-    writeln('Schwerter         :',s[m].einheit[line2].werte[16]);
-    writeln('Zweihaender       :',s[m].einheit[line2].werte[17]);
-    writeln('Infanteriewaffen  :',s[m].einheit[line2].werte[18]);
-    writeln('Wurfwaffen        :',s[m].einheit[line2].werte[19]);
-    writeln('Schusswaffen      :',s[m].einheit[line2].werte[20]);
-s[m].einheit[line2].werte[21]:=(s[m].einheit[line2].werte[waf[s[m].einheit[line2].waf[1]].art+9]-10) div 2+
-1+(s[m].einheit[line2].werte[1]+
-s[m].einheit[line2].werte[7]+s[m].einheit[line2].werte[6]) div 5;
-s[m].einheit[line2].werte[22]:=(s[m].einheit[line2].werte[waf[s[m].einheit[line2].waf[1]].art+9]-10) div 2+
-1+(s[m].einheit[line2].werte[2]+
-s[m].einheit[line2].werte[4]+s[m].einheit[line2].werte[6]) div 5;
-    writeln('Attacke              :',s[m].einheit[line2].werte[21]);
-    writeln('Parade               :',s[m].einheit[line2].werte[22]);
+    writeln('Mut               :',s[m]^.einheit[line2].werte[1]);
+    writeln('Klugheit          :',s[m]^.einheit[line2].werte[2]);
+    writeln('Charisma          :',s[m]^.einheit[line2].werte[3]);
+    writeln('Intuition         :',s[m]^.einheit[line2].werte[4]);
+    writeln('Fingerfertigkeit  :',s[m]^.einheit[line2].werte[5]);
+    writeln('Gewandtheit       :',s[m]^.einheit[line2].werte[6]);
+    writeln('Koerperkraft      :',s[m]^.einheit[line2].werte[7]);
+    writeln('Lebensenergie     :',s[m]^.einheit[line2].werte[8]);
+    writeln('Astralenergie     :',s[m]^.einheit[line2].werte[9]);
+    writeln('Waffenlos         :',s[m]^.einheit[line2].werte[10]);
+    writeln('Speere, Staebe    :',s[m]^.einheit[line2].werte[11]);
+    writeln('Stichwaffen       :',s[m]^.einheit[line2].werte[12]);
+    writeln('Aexte, Beile      :',s[m]^.einheit[line2].werte[13]);
+    writeln('stumpfe Hiebwaffen:',s[m]^.einheit[line2].werte[14]);
+    writeln('scharfe Hiebwaffen:',s[m]^.einheit[line2].werte[15]);
+    writeln('Schwerter         :',s[m]^.einheit[line2].werte[16]);
+    writeln('Zweihaender       :',s[m]^.einheit[line2].werte[17]);
+    writeln('Infanteriewaffen  :',s[m]^.einheit[line2].werte[18]);
+    writeln('Wurfwaffen        :',s[m]^.einheit[line2].werte[19]);
+    writeln('Schusswaffen      :',s[m]^.einheit[line2].werte[20]);
+s[m]^.einheit[line2].werte[21]:=(s[m]^.einheit[line2].werte[waf[s[m]^.einheit[line2].waf[1]].art+9]-10) div 2+
+1+(s[m]^.einheit[line2].werte[1]+
+s[m]^.einheit[line2].werte[7]+s[m]^.einheit[line2].werte[6]) div 5;
+s[m]^.einheit[line2].werte[22]:=(s[m]^.einheit[line2].werte[waf[s[m]^.einheit[line2].waf[1]].art+9]-10) div 2+
+1+(s[m]^.einheit[line2].werte[2]+
+s[m]^.einheit[line2].werte[4]+s[m]^.einheit[line2].werte[6]) div 5;
+    writeln('Attacke              :',s[m]^.einheit[line2].werte[21]);
+    writeln('Parade               :',s[m]^.einheit[line2].werte[22]);
     window(1,1,80,25);
     gotoxy(39,line3+1);write('<');
     case readkey of
-    '+':begin if line2>=soldier then line2:=1 else inc(line2);s[m].akwa:=1;s[m].akru:=1;end;
-    '-':begin if line2<=1 then line2:=soldier else dec(line2);s[m].akwa:=1;s[m].akru:=1;end;
-    'a':if s[m].akwa>=wanzahl then s[m].akwa:=1 else inc(s[m].akwa);
-    'z':if s[m].akru>=ranzahl then s[m].akru:=1 else inc(s[m].akru);
+    '+':begin if line2>=soldier then line2:=1 else inc(line2);s[m]^.akwa:=1;s[m]^.akru:=1;end;
+    '-':begin if line2<=1 then line2:=soldier else dec(line2);s[m]^.akwa:=1;s[m]^.akru:=1;end;
+    'a':if s[m]^.akwa>=wanzahl then s[m]^.akwa:=1 else inc(s[m]^.akwa);
+    'z':if s[m]^.akru>=ranzahl then s[m]^.akru:=1 else inc(s[m]^.akru);
     #72:if line3>1 then dec(line3);
     #80:if line3<9 then inc(line3);
     #13:if line3=1 then begin
-    gotoxy(23,2);readln(s[m].einheit[line2].name);
+    gotoxy(23,2);readln(s[m]^.einheit[line2].name);
     end else if (line3>1) and (line3<6) then begin
-    if s[m].akru<>1 then begin
-    if rus[s[m].akru].art=line3-1 then begin
-    if s[m].ruestungen[s[m].akru].stuck>0 then begin
-    dec(s[m].ruestungen[s[m].akru].stuck);inc(s[m].ruestungen[s[m].einheit[line2].rus[line3-1]].stuck);
-    s[m].einheit[line2].rus[line3-1]:=s[m].akru;end;end;end else begin
-    if s[m].einheit[line2].rus[line3-1]<>1 then inc(s[m].ruestungen[s[m].einheit[line2].rus[line3-1]].stuck);
-    s[m].einheit[line2].rus[line3-1]:=s[m].akru;end;end
+    if s[m]^.akru<>1 then begin
+    if rus[s[m]^.akru].art=line3-1 then begin
+    if s[m]^.ruestungen[s[m]^.akru].stuck>0 then begin
+    dec(s[m]^.ruestungen[s[m]^.akru].stuck);inc(s[m]^.ruestungen[s[m]^.einheit[line2].rus[line3-1]].stuck);
+    s[m]^.einheit[line2].rus[line3-1]:=s[m]^.akru;end;end;end else begin
+    if s[m]^.einheit[line2].rus[line3-1]<>1 then inc(s[m]^.ruestungen[s[m]^.einheit[line2].rus[line3-1]].stuck);
+    s[m]^.einheit[line2].rus[line3-1]:=s[m]^.akru;end;end
     else if (line3>5) then begin
-    if s[m].akwa<>1 then begin
-    if s[m].waffen[s[m].akwa].stuck>0 then begin
-    dec(s[m].waffen[s[m].akwa].stuck);inc(s[m].waffen[s[m].einheit[line2].waf[line3-5]].stuck);
-    s[m].einheit[line2].waf[line3-5]:=s[m].akwa;end;end else begin
-    if s[m].einheit[line2].waf[line3-5]<>1 then inc(s[m].waffen[s[m].einheit[line2].waf[line3-5]].stuck);
-    s[m].einheit[line2].waf[line3-5]:=s[m].akwa;end;end;
+    if s[m]^.akwa<>1 then begin
+    if s[m]^.waffen[s[m]^.akwa].stuck>0 then begin
+    dec(s[m]^.waffen[s[m]^.akwa].stuck);inc(s[m]^.waffen[s[m]^.einheit[line2].waf[line3-5]].stuck);
+    s[m]^.einheit[line2].waf[line3-5]:=s[m]^.akwa;end;end else begin
+    if s[m]^.einheit[line2].waf[line3-5]<>1 then inc(s[m]^.waffen[s[m]^.einheit[line2].waf[line3-5]].stuck);
+    s[m]^.einheit[line2].waf[line3-5]:=s[m]^.akwa;end;end;
     #27:a:=#27;
     end;
     until a=#27;
@@ -675,47 +756,48 @@ s[m].einheit[line2].werte[4]+s[m].einheit[line2].werte[6]) div 5;
     #73:begin feld:=true;main:=false;end;
     #81:begin feld:=false;main:=true;end;
     #27:halt;
-    '+':if s[m].steuern<100 then inc(s[m].steuern);
-    '-':if s[m].steuern>0 then dec(s[m].steuern);
-    's':if s[m].steu<100 then inc(s[m].steu);
-    'x':if s[m].steu>0 then dec(s[m].steu);
+    '+':if s[m]^.steuern<100 then inc(s[m]^.steuern);
+    '-':if s[m]^.steuern>0 then dec(s[m]^.steuern);
+    's':if s[m]^.steu<100 then inc(s[m]^.steu);
+    'x':if s[m]^.steu>0 then dec(s[m]^.steu);
     'g':gener;
-    #32:built(s[m].ch,r(s[m].ch));
-    #9:for l:=1 to max do if (s[m].haus[l].xx=x) and (s[m].haus[l].yy=y) and (s[m].befehle>0) then
-    begin dec(s[m].befehle);s[m].haus[l].ak:=not s[m].haus[l].ak;end;
+    #32:built(s[m]^.ch,r(s[m]^.ch));
+    #9:for l:=1 to max do if (s[m]^.haus[l].xx=x) and (s[m]^.haus[l].yy=y) and (s[m]^.befehle>0) then
+    begin dec(s[m]^.befehle);s[m]^.haus[l].ak:=not s[m]^.haus[l].ak;end;
     #59:if m=0 then begin
     write('Speichern unter :');readln(name);assign(fil,name);rewrite(fil,1);blockwrite(fil,s,sizeof(s));close(fil);clrscr;end;
 {    #68:menu;}
-    'm':if s[m].waffen[s[m].weapon].prod<20 then inc(s[m].waffen[s[m].weapon].prod) else s[m].waffen[s[m].weapon].prod:=0;
-    'n':if s[m].ruestungen[s[m].rustung].prod<20 then inc(s[m].ruestungen[s[m].rustung].prod) else
-    s[m].ruestungen[s[m].rustung].prod:=0;
-    'W':if s[m].weapon<wanzahl then inc(s[m].weapon) else s[m].weapon:=0;
-    'R':if s[m].Rustung<ranzahl then inc(s[m].rustung) else s[m].rustung:=0;
+    'm':if s[m]^.waffen[s[m]^.weapon].prod<20 then inc(s[m]^.waffen[s[m]^.weapon].prod) else
+    s[m]^.waffen[s[m]^.weapon].prod:=0;
+    'n':if s[m]^.ruestungen[s[m]^.rustung].prod<20 then inc(s[m]^.ruestungen[s[m]^.rustung].prod) else
+    s[m]^.ruestungen[s[m]^.rustung].prod:=0;
+    'W':if s[m]^.weapon<wanzahl then inc(s[m]^.weapon) else s[m]^.weapon:=0;
+    'R':if s[m]^.Rustung<ranzahl then inc(s[m]^.rustung) else s[m]^.rustung:=0;
     #13:aufw;
     'f':FIGHT2;
     'b':showb;
     'w':begin
     if m=0 then m:=1 else m:=0;
-    for i:=1 to 25 do s[m].fehler[i]:=false;
-    inc(s[m].p[11],round((s[m].dorf/2500)*s[m].steuern*s[m].steu));
-    inc(s[m].p[14],round((s[m].dorf/2500)*(100-s[m].steuern)*s[m].steu));
-    inc(s[m].p[15],round((s[m].dorf/2500)*(100-s[m].steuern)*s[m].steu));
-    s[m].bauen:=0;
-    s[m].befehle:=1;
+    for i:=1 to 25 do s[m]^.fehler[i]:=false;
+    inc(s[m]^.p[11],round((s[m]^.dorf/2500)*s[m]^.steuern*s[m]^.steu));
+    inc(s[m]^.p[14],round((s[m]^.dorf/2500)*(100-s[m]^.steuern)*s[m]^.steu));
+    inc(s[m]^.p[15],round((s[m]^.dorf/2500)*(100-s[m]^.steuern)*s[m]^.steu));
+    s[m]^.bauen:=0;
+    s[m]^.befehle:=1;
     {if esse=0 then dec(dorf,dorf div 100) else inc(dorf,dorf div 100+esse);}
     produziere;versorgung;
-    s[m].temp:=s[m].unruhe*s[m].dorf div 25;
-    s[m].dorf:=s[m].dorf-s[m].temp;
-    inc(s[m].dorf,s[m].dorf div 100-(s[m].dorf+s[m].temp) div 150);
-    s[m].dorf:=s[m].dorf+s[m].temp;
-    for k:=1 to 13 do if s[m].p[k]>s[m].maxl then s[m].p[k]:=s[m].maxl;
-    for k:=16 to 25 do if s[m].p[k]>s[m].maxl then s[m].p[k]:=s[m].maxl;
-    if s[m].p[14]>s[m].maxe then s[m].p[14]:=s[m].maxe;
-    if s[m].p[15]>s[m].maxe then s[m].p[15]:=s[m].maxe;
+    s[m]^.temp:=s[m]^.unruhe*s[m]^.dorf div 25;
+    s[m]^.dorf:=s[m]^.dorf-s[m]^.temp;
+    inc(s[m]^.dorf,s[m]^.dorf div 100-(s[m]^.dorf+s[m]^.temp) div 150);
+    s[m]^.dorf:=s[m]^.dorf+s[m]^.temp;
+    for k:=1 to 13 do if s[m]^.p[k]>s[m]^.maxl then s[m]^.p[k]:=s[m]^.maxl;
+    for k:=16 to 25 do if s[m]^.p[k]>s[m]^.maxl then s[m]^.p[k]:=s[m]^.maxl;
+    if s[m]^.p[14]>s[m]^.maxe then s[m]^.p[14]:=s[m]^.maxe;
+    if s[m]^.p[15]>s[m]^.maxe then s[m]^.p[15]:=s[m]^.maxe;
     screen;
     gotoxy(1,1);
     writeln('Get Ready, Player ',m+1);
-    for i:=1 to 25 do s[m].fehler[i]:=false;
+    for i:=1 to 25 do s[m]^.fehler[i]:=false;
     if loose2 then begin
     writeln('Congratulations Player 1!Yippey!Hooray!You destroyed the enemy village!Kauft mehr Wars!');readkey;exit;end;
     if loose1 then begin
